@@ -23,8 +23,11 @@ const LaunchCard = ({ launch }) => {
       return <span className="status upcoming">upcoming</span>;
     }
     
-    // For past launches
-    return <span className="status failed">{launch.launch_success ? 'success' : 'failed'}</span>;
+    // For past launches - use correct class based on success
+    const statusClass = launch.launch_success ? 'success' : 'failed';
+    return <span className={`status ${statusClass}`}>
+      {launch.launch_success ? 'success' : 'failed'}
+    </span>;
   };
   
   // Get mission details for expanded view
