@@ -24,6 +24,7 @@ const App = () => {
       const response = await fetch(`${API_URL}`);
       const data = await response.json();
       setAllLaunches(data);
+      // Initially show only first 10
       setVisibleLaunches(data.slice(0, limit));
       setOffset(limit);
       setHasMore(data.length > limit);
@@ -34,51 +35,43 @@ const App = () => {
     }
   }, [limit]);
 
-  // Load more launches
+  // Load exactly 10 more launches
   const loadMoreLaunches = useCallback(() => {
     if (!hasMore || loading) return;
 
     setLoading(true);
     
-    setTimeout(() => {
-      const newOffset = offset + limit;
-      const filtered = searchTerm 
-        ? allLaunches.filter(launch =>
-            launch.mission_name.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-        : allLaunches;
-      
-      const newLaunches = filtered.slice(offset, newOffset);
-      setVisibleLaunches(prev => [...prev, ...newLaunches]);
-      setOffset(newOffset);
-      setHasMore(newOffset < filtered.length);
-      setLoading(false);
-    }, 300);
+    const newOffset = offset + limit;
+    const filtered = searchTerm 
+      ? allLaunches.filter(launch =>
+          launch.mission_name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : allLaunches;
+    
+    // Get exactly next 10 items
+    const nextBatch = filtered.slice(offset, newOffset);
+    setVisibleLaunches(prev => [...prev, ...nextBatch]);
+    setOffset(newOffset);
+    setHasMore(newOffset < filtered.length);
+    setLoading(false);
   }, [offset, limit, hasMore, allLaunches, searchTerm, loading]);
 
-  // Initialize infinite scroll
+  // Initialize infinite scroll with container ref
   useInfiniteScroll(loadMoreLaunches, scrollContainerRef, loading);
 
-  // Handle search
+  // Handle search - resets to first 10 results
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchTerm.trim() === '') {
-        setVisibleLaunches(allLaunches.slice(0, limit));
-        setOffset(limit);
-        setHasMore(allLaunches.length > limit);
-        return;
-      }
+    if (!allLaunches.length) return;
 
-      const filtered = allLaunches.filter(launch =>
-        launch.mission_name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      
-      setVisibleLaunches(filtered.slice(0, limit));
-      setOffset(limit);
-      setHasMore(filtered.length > limit);
-    }, 300);
-
-    return () => clearTimeout(timer);
+    const filtered = searchTerm 
+      ? allLaunches.filter(launch =>
+          launch.mission_name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      : allLaunches;
+    
+    setVisibleLaunches(filtered.slice(0, limit));
+    setOffset(limit);
+    setHasMore(filtered.length > limit);
   }, [searchTerm, allLaunches, limit]);
 
   // Initial load
@@ -104,7 +97,11 @@ const App = () => {
       {loading && offset === 0 ? (
         <Loading fullPage />
       ) : (
-        <div className="launches-container" ref={scrollContainerRef}>
+        <div 
+            className="launches-container" 
+            ref={scrollContainerRef}
+            style={{ overflowY: 'auto', height: 'calc(80vh - 150px)' }}
+          >
           {visibleLaunches.map((launch) => (
             <LaunchCard key={launch.flight_number} launch={launch} />
           ))}

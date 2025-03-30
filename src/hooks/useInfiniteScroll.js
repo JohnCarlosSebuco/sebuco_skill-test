@@ -1,29 +1,35 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 
-const useInfiniteScroll = (callback) => {
-  const [isFetching, setIsFetching] = useState(false);
-
-  const handleScroll = useCallback(() => {
-    if (
-      window.innerHeight + document.documentElement.scrollTop !==
-        document.documentElement.offsetHeight ||
-      isFetching
-    )
-      return;
-    setIsFetching(true);
-  }, [isFetching]);
-
+const useInfiniteScroll = (callback, scrollRef, isLoading) => {
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+    let debounceTimer;
+    
+    const handleScroll = () => {
+      if (isLoading) return;
+      
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const container = scrollRef.current;
+        if (!container) return;
 
-  useEffect(() => {
-    if (!isFetching) return;
-    callback();
-  }, [isFetching, callback]);
+        const { scrollTop, scrollHeight, clientHeight } = container;
+        const isNearBottom = scrollHeight - (scrollTop + clientHeight) < 100;
 
-  return [isFetching, setIsFetching];
+        if (isNearBottom) {
+          callback();
+        }
+      }, 100);
+    };
+
+    const container = scrollRef.current;
+    if (!container) return;
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      clearTimeout(debounceTimer);
+    };
+  }, [callback, isLoading, scrollRef]);
 };
 
 export default useInfiniteScroll;
