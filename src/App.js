@@ -14,6 +14,7 @@ const App = () => {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const limit = 10;
   const scrollContainerRef = useRef(null);
 
@@ -24,7 +25,6 @@ const App = () => {
       const response = await fetch(`${API_URL}`);
       const data = await response.json();
       setAllLaunches(data);
-      // Initially show only first 10
       setVisibleLaunches(data.slice(0, limit));
       setOffset(limit);
       setHasMore(data.length > limit);
@@ -35,11 +35,14 @@ const App = () => {
     }
   }, [limit]);
 
-  // Load exactly 10 more launches
-  const loadMoreLaunches = useCallback(() => {
-    if (!hasMore || loading) return;
-
-    setLoading(true);
+  // Load exactly 10 more launches with delay
+  const loadMoreLaunches = useCallback(async (onComplete) => {
+    if (!hasMore || isFetchingMore) return;
+    
+    setIsFetchingMore(true);
+    
+    // Add artificial delay to show loading spinner
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     const newOffset = offset + limit;
     const filtered = searchTerm 
@@ -48,18 +51,19 @@ const App = () => {
         )
       : allLaunches;
     
-    // Get exactly next 10 items
     const nextBatch = filtered.slice(offset, newOffset);
     setVisibleLaunches(prev => [...prev, ...nextBatch]);
     setOffset(newOffset);
     setHasMore(newOffset < filtered.length);
-    setLoading(false);
-  }, [offset, limit, hasMore, allLaunches, searchTerm, loading]);
+    
+    setIsFetchingMore(false);
+    onComplete && onComplete();
+  }, [offset, limit, hasMore, allLaunches, searchTerm, isFetchingMore]);
 
-  // Initialize infinite scroll with container ref
-  useInfiniteScroll(loadMoreLaunches, scrollContainerRef, loading);
+  // Initialize infinite scroll
+  useInfiniteScroll(loadMoreLaunches, scrollContainerRef, isFetchingMore);
 
-  // Handle search - resets to first 10 results
+  // Handle search
   useEffect(() => {
     if (!allLaunches.length) return;
 
@@ -98,14 +102,21 @@ const App = () => {
         <Loading fullPage />
       ) : (
         <div 
-            className="launches-container" 
-            ref={scrollContainerRef}
-            style={{ overflowY: 'auto', height: 'calc(80vh - 150px)' }}
-          >
+          className="launches-container" 
+          ref={scrollContainerRef}
+          style={{ overflowY: 'auto', height: 'calc(80vh - 150px)' }}
+        >
           {visibleLaunches.map((launch) => (
             <LaunchCard key={launch.flight_number} launch={launch} />
           ))}
-          {loading && hasMore && <Loading />}
+          
+          {/* Loading spinner when fetching more */}
+          {(isFetchingMore && hasMore) && (
+            <div className="loading-more-container">
+              <Loading />
+            </div>
+          )}
+          
           {!hasMore && visibleLaunches.length > 0 && <NoMoreResults />}
           {!loading && visibleLaunches.length === 0 && (
             <div className="no-more-container">

@@ -3,9 +3,10 @@ import { useEffect } from 'react';
 const useInfiniteScroll = (callback, scrollRef, isLoading) => {
   useEffect(() => {
     let debounceTimer;
+    let isFetching = false;
     
     const handleScroll = () => {
-      if (isLoading) return;
+      if (isLoading || isFetching) return;
       
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
@@ -16,7 +17,10 @@ const useInfiniteScroll = (callback, scrollRef, isLoading) => {
         const isNearBottom = scrollHeight - (scrollTop + clientHeight) < 100;
 
         if (isNearBottom) {
-          callback();
+          isFetching = true;
+          callback(() => {
+            isFetching = false;
+          });
         }
       }, 100);
     };
