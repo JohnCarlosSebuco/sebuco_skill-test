@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 const LaunchCard = ({ launch }) => {
   const [expanded, setExpanded] = useState(false);
   
-  // Calculate time since launch
   const getTimeSince = (launchDate) => {
     const now = new Date();
     const launch = new Date(launchDate);
@@ -16,28 +15,23 @@ const LaunchCard = ({ launch }) => {
     }
   };
   
-  // Format launch status
   const getStatusLabel = () => {
-    // For upcoming launches
     if (new Date(launch.launch_date_utc) > new Date()) {
       return <span className="status upcoming">upcoming</span>;
     }
     
-    // For past launches - use correct class based on success
     const statusClass = launch.launch_success ? 'success' : 'failed';
     return <span className={`status ${statusClass}`}>
       {launch.launch_success ? 'success' : 'failed'}
     </span>;
   };
   
-  // Get mission details for expanded view
   const getMissionDetails = () => {
     const details = [];
     
     if (launch.details) {
       details.push(launch.details);
     } else {
-      // Example details based on your second image
       if (launch.rocket && launch.rocket.first_stage && launch.rocket.first_stage.cores) {
         const core = launch.rocket.first_stage.cores[0];
         if (core) {
@@ -51,7 +45,6 @@ const LaunchCard = ({ launch }) => {
         details.push('Failed to reach orbit');
       }
       
-      // Add more fallback details if needed
       if (details.length === 0) {
         details.push(`Launched on ${new Date(launch.launch_date_utc).toLocaleDateString()}`);
       }
@@ -63,7 +56,6 @@ const LaunchCard = ({ launch }) => {
   return (
     <div className="launch-card">
       {!expanded ? (
-        // Collapsed view - just mission name and status with VIEW button
         <div className="collapsed-card">
           <div className="card-header">
             <h3 className="mission-name">{launch.mission_name}</h3>
@@ -77,7 +69,6 @@ const LaunchCard = ({ launch }) => {
           </button>
         </div>
       ) : (
-        // Expanded view - full details with HIDE button
         <div className="expanded-card">
           <div className="card-header">
             <h3 className="mission-name">{launch.mission_name}</h3>

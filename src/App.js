@@ -18,7 +18,6 @@ const App = () => {
   const limit = 10;
   const scrollContainerRef = useRef(null);
 
-  // Fetch all launches initially
   const fetchAllLaunches = useCallback(async () => {
     try {
       setLoading(true);
@@ -35,13 +34,11 @@ const App = () => {
     }
   }, [limit]);
 
-  // Load exactly 10 more launches with delay
   const loadMoreLaunches = useCallback(async (onComplete) => {
     if (!hasMore || isFetchingMore) return;
     
     setIsFetchingMore(true);
     
-    // Add artificial delay to show loading spinner
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const newOffset = offset + limit;
@@ -60,10 +57,8 @@ const App = () => {
     onComplete && onComplete();
   }, [offset, limit, hasMore, allLaunches, searchTerm, isFetchingMore]);
 
-  // Initialize infinite scroll
   useInfiniteScroll(loadMoreLaunches, scrollContainerRef, isFetchingMore);
 
-  // Handle search
   useEffect(() => {
     if (!allLaunches.length) return;
 
@@ -78,7 +73,6 @@ const App = () => {
     setHasMore(filtered.length > limit);
   }, [searchTerm, allLaunches, limit]);
 
-  // Initial load
   useEffect(() => {
     fetchAllLaunches();
   }, [fetchAllLaunches]);
@@ -110,7 +104,6 @@ const App = () => {
             <LaunchCard key={launch.flight_number} launch={launch} />
           ))}
           
-          {/* Loading spinner when fetching more */}
           {(isFetchingMore && hasMore) && (
             <div className="loading-more-container">
               <Loading />
