@@ -1,6 +1,6 @@
 # SpaceX Launches Viewer
 
-A modern React application that displays SpaceX launch data with infinite scrolling, search, and filtering capabilities. Built with Framer Motion for smooth animations.
+A modern React application created by John Carlos Sebuco that displays SpaceX launch data with infinite scrolling, search, and filtering capabilities. Built with Framer Motion for smooth animations.
 
 
 ### Step-by-Step Setup
