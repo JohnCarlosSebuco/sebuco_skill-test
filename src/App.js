@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import useInfiniteScroll from './hooks/useInfiniteScroll';
 import LaunchCard from './components/LaunchCard';
 import Loading from './components/Loading';
@@ -102,11 +103,37 @@ const App = () => {
   }, [fetchAllLaunches]);
 
   return (
-    <div className="app">
-      <div className="header">
-        <h1>SpaceX Launches</h1>
-        <div className="filters-container">
-          <div className="search-wrapper">
+    <motion.div 
+      className="app"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div 
+        className="header"
+        initial={{ y: -50 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.h1
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          SpaceX Launches
+        </motion.h1>
+        
+        <motion.div 
+          className="filters-container"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <motion.div 
+            className="search-wrapper"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
             <input
               type="text"
               className="search-input"
@@ -114,13 +141,13 @@ const App = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-          </div>
+          </motion.div>
 
-          <select
+          <motion.select
             value={filters.launchYear}
-            onChange={(e) =>
-              setFilters({ ...filters, launchYear: e.target.value })
-            }
+            onChange={(e) => setFilters({ ...filters, launchYear: e.target.value })}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
             <option value="">All Years</option>
             {Array.from(
@@ -136,9 +163,9 @@ const App = () => {
                   {year}
                 </option>
               ))}
-          </select>
+          </motion.select>
 
-          <select
+          <motion.select
             value={
               filters.launchSuccess === null
                 ? ''
@@ -155,13 +182,15 @@ const App = () => {
                     : e.target.value === 'success',
               })
             }
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
             <option value="">All Statuses</option>
             <option value="success">Success</option>
             <option value="failed">Failed</option>
-          </select>
-        </div>
-      </div>
+          </motion.select>
+        </motion.div>
+      </motion.div>
 
       {loading && offset === 0 ? (
         <Loading fullPage />
@@ -171,9 +200,20 @@ const App = () => {
           ref={scrollContainerRef}
           style={{ overflowY: 'auto', height: 'calc(80vh - 150px)' }}
         >
-          {visibleLaunches.map((launch) => (
-            <LaunchCard key={launch.flight_number} launch={launch} />
-          ))}
+          <AnimatePresence>
+            {visibleLaunches.map((launch) => (
+              <motion.div
+                key={launch.flight_number}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+                layout
+              >
+                <LaunchCard launch={launch} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {isFetchingMore && hasMore && (
             <div className="loading-more-container">
@@ -189,7 +229,7 @@ const App = () => {
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
