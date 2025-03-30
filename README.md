@@ -1,3 +1,28 @@
+# SpaceX Launches Viewer
+
+A modern React application that displays SpaceX launch data with infinite scrolling, search, and filtering capabilities. Built with Framer Motion for smooth animations.
+
+
+### Step-by-Step Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/JohnCarlosSebuco/sebuco_skill-test.git
+   cd spacex-launches
+
+2. **Install dependencies**
+    ```bash
+    npm install
+
+3. **Run the development server**
+    ```bash
+    npm start
+
+4. **(Optional) Build for production**
+    ```bash
+    npm run build
+
+
 # JS Code Test
 
 This code test will determine your approach on solving problems.
