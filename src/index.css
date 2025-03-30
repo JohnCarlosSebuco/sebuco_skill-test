@@ -142,11 +142,20 @@ body {
 
 .mission-patch {
   flex-shrink: 0;
+  width: 80px; 
+  height: 80px; 
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+  background-color: rgba(255, 255, 255, 0.05); 
+  border-radius: 4px; 
+  padding: 5px; 
 }
 
 .mission-patch img {
-  width: 80px;
-  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; 
 }
 
 .mission-info {

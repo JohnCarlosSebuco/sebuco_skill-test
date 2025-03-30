@@ -1,5 +1,0 @@
-username: pabuhatsasmurf
-password: qCszhMGSJg55iUa8
-
-
-mongodb_uri = mongodb+srv://pabuhatsasmurf:qCszhMGSJg55iUa8@cluster0.yp9ufir.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
