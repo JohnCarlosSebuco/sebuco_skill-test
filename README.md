@@ -8,7 +8,6 @@ A modern React application created by John Carlos Sebuco that displays SpaceX la
 1. **Clone the repository**
    ```bash
    git clone https://github.com/JohnCarlosSebuco/sebuco_skill-test.git
-   cd spacex-launches
 
 2. **Install dependencies**
     ```bash
