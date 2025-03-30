@@ -1,20 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import useInfiniteScroll from './hooks/useInfiniteScroll';
 import LaunchCard from './components/LaunchCard';
 import Loading from './components/Loading';
 import NoMoreResults from './components/NoMoreResults';
-import './index.css';
+import './App.css';
 
 const API_URL = 'https://api.spacexdata.com/v3/launches';
 
 const App = () => {
-  const [launches, setLaunches] = useState([]);
-  const [allLaunches, setAllLaunches] = useState([]); // Store all launches for client-side filtering
+  const [visibleLaunches, setVisibleLaunches] = useState([]);
+  const [allLaunches, setAllLaunches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const limit = 10;
+  const scrollContainerRef = useRef(null);
 
   // Fetch all launches initially
   const fetchAllLaunches = useCallback(async () => {
@@ -23,7 +24,7 @@ const App = () => {
       const response = await fetch(`${API_URL}`);
       const data = await response.json();
       setAllLaunches(data);
-      setLaunches(data.slice(0, limit));
+      setVisibleLaunches(data.slice(0, limit));
       setOffset(limit);
       setHasMore(data.length > limit);
     } catch (error) {
@@ -31,35 +32,54 @@ const App = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [limit]);
 
-  // Load more launches for infinite scroll
-  const fetchMoreLaunches = useCallback(() => {
-    if (!hasMore) return;
+  // Load more launches
+  const loadMoreLaunches = useCallback(() => {
+    if (!hasMore || loading) return;
+
+    setLoading(true);
     
-    const newOffset = offset + limit;
-    const newLaunches = allLaunches.slice(offset, newOffset);
-    setLaunches(prev => [...prev, ...newLaunches]);
-    setOffset(newOffset);
-    setHasMore(newOffset < allLaunches.length);
-  }, [offset, limit, hasMore, allLaunches]);
+    setTimeout(() => {
+      const newOffset = offset + limit;
+      const filtered = searchTerm 
+        ? allLaunches.filter(launch =>
+            launch.mission_name.toLowerCase().includes(searchTerm.toLowerCase())
+          )
+        : allLaunches;
+      
+      const newLaunches = filtered.slice(offset, newOffset);
+      setVisibleLaunches(prev => [...prev, ...newLaunches]);
+      setOffset(newOffset);
+      setHasMore(newOffset < filtered.length);
+      setLoading(false);
+    }, 300);
+  }, [offset, limit, hasMore, allLaunches, searchTerm, loading]);
 
-  // Initialize infinite scroll with the callback
-  const [isFetching] = useInfiniteScroll(fetchMoreLaunches);
+  // Initialize infinite scroll
+  useInfiniteScroll(loadMoreLaunches, scrollContainerRef, loading);
 
-  // Filter launches based on search term
+  // Handle search
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setLaunches(allLaunches.slice(0, offset));
-      return;
-    }
+    const timer = setTimeout(() => {
+      if (searchTerm.trim() === '') {
+        setVisibleLaunches(allLaunches.slice(0, limit));
+        setOffset(limit);
+        setHasMore(allLaunches.length > limit);
+        return;
+      }
 
-    const filtered = allLaunches.filter(launch =>
-      launch.mission_name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setLaunches(filtered.slice(0, offset));
-    setHasMore(filtered.length > offset);
-  }, [searchTerm, allLaunches, offset]);
+      const filtered = allLaunches.filter(launch =>
+        launch.mission_name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      
+      setVisibleLaunches(filtered.slice(0, limit));
+      setOffset(limit);
+      setHasMore(filtered.length > limit);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, allLaunches, limit]);
 
   // Initial load
   useEffect(() => {
@@ -81,16 +101,16 @@ const App = () => {
         </div>
       </div>
 
-      {loading ? (
-        <Loading />
+      {loading && offset === 0 ? (
+        <Loading fullPage />
       ) : (
-        <div className="launches-container">
-          {launches.map((launch) => (
+        <div className="launches-container" ref={scrollContainerRef}>
+          {visibleLaunches.map((launch) => (
             <LaunchCard key={launch.flight_number} launch={launch} />
           ))}
-          {isFetching && hasMore && <Loading />}
-          {!hasMore && launches.length > 0 && <NoMoreResults />}
-          {!loading && launches.length === 0 && (
+          {loading && hasMore && <Loading />}
+          {!hasMore && visibleLaunches.length > 0 && <NoMoreResults />}
+          {!loading && visibleLaunches.length === 0 && (
             <div className="no-more-container">
               <p className="no-more-text">No launches found</p>
             </div>
